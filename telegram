@@ -1,0 +1,30 @@
+#!/bin/bash
+# Tegramm Notification
+
+CHATID="123"
+TOKEN="XYZ:123"
+
+HOSTTEXT=`cat <<-END
+	CheckMK HOST $NOTIFY_NOTIFICATIONTYPE
+	Host: $NOTIFY_HOSTNAME
+	State: $NOTIFY_HOSTSHORTSTATE
+END`
+
+SERVICETEXT=`cat <<-END 
+	CheckMK SERVICE $NOTIFY_NOTIFICATIONTYPE
+	Host: $NOTIFY_HOSTNAME
+	Serv.: $NOTIFY_SERVICEDESC
+	State: $NOTIFY_SERVICESHORTSTATE
+END`
+
+
+if [ $NOTIFY_WHAT = "HOST" ]
+then
+  NOTTEXT="$HOSTTEXT"
+else
+  NOTTEXT="$SERVICETEXT"
+fi
+
+curl --data-urlencode "text=$NOTTEXT" -X POST \
+     "https://api.telegram.org/bot$TOKEN/sendMessage?chat_id=$CHATID"
+
