@@ -1,1 +1,1 @@
-# zwi
+# checkmk Notification Script (Telegram)
