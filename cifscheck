@@ -1,0 +1,31 @@
+#! /bin/bash
+
+STATESEC="86400"
+SPOOLPATH="/var/lib/check_mk_agent/spool"
+SPOOLNAME=`basename $0`
+SPOOLFILE="$SPOOLPATH/${STATESEC}_${SPOOLNAME}.cifc"
+
+rm "$SPOOLPATH"/*_"${SPOOLNAME}.cifc" 2>/dev/null
+
+awk -F' ' '$3 == "cifs" {printf("%s;%s\n",$1,$2)}' /proc/mounts| while read MNT
+do
+  STAT=0
+  SHARE=${MNT%;*}
+  MNTP=${MNT#*;}
+  LSOUT=`timeout -s 1 -k 30 10 ls "$MNTP" > /dev/null 2>&1`
+  if [ "$?" != "0" ]
+  then
+    STAT=2
+    if [ "$LSOUT" = "" ]
+    then
+      MNTSTAT="timeout"
+    else
+      MNTSTAT="$LSOUT"
+    fi
+  else
+      MNTSTAT="ok"
+  fi
+
+  echo "<<<local>>>" >> "$SPOOLFILE" 
+  echo "$STAT \"Mounted Share $SHARE  [cron check]\" - Mountpoint: $MNTP Status: $MNTSTAT"  >> "$SPOOLFILE"
+done
