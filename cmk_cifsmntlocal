@@ -1,0 +1,24 @@
+#! /bin/bash
+
+awk -F' ' '$3 == "cifs" {printf("%s;%s\n",$1,$2)}' /proc/mounts| while read MNT
+do
+  STAT=0
+  SHARE=${MNT%;*}
+  MNTP=${MNT#*;}
+  #FSSTAT=`timeout -s 1 -k 30 10 stat -f -c "%b;%f" "$MNTP" 2>/dev/null`
+  LSOUT=`timeout -s 1 -k 30 10 ls "$MNTP" > /dev/null 2>&1`
+  if [ "$?" != "0" ]
+  then
+    STAT=2
+    if [ "$LSOUT" = "" ]
+    then
+      MNTSTAT="timeout"
+    else
+      MNTSTAT="$LSOUT"
+    fi
+  else
+      MNTSTAT="ok"
+  fi
+
+  echo "$STAT \"Mounted Share $SHARE\" - Mountpoint: $MNTP Status: $MNTSTAT"
+done
